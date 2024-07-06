@@ -1,0 +1,92 @@
+#include <Ultrasonic.h>    // Ultrasonic library for sensor readings
+
+// Pin assignments
+Ultrasonic ultrasonic(8, 9);   // Trigger and Echo pins for Ultrasonic sensor
+int bolt = 2;                  // Pin connected to the bolt module
+int enable = 3;                // Enable pin of LM293D motor driver
+int in1 = 4;                   // Input pin 1 of LM293D motor driver
+int in2 = 5;                   // Input pin 2 of LM293D motor driver
+int buz = 6;                   // Pin connected to the buzzer
+
+// State variables
+int old_state = 0;             // Previous state value of the bolt pin
+int new_state;                 // New state value of the bolt pin
+int distance;                  // Distance between the vehicle and the garage wall
+
+void setup() 
+{
+  // Set pin modes
+  pinMode(bolt, INPUT);       
+  pinMode(enable, OUTPUT);
+  pinMode(in1, OUTPUT);
+  pinMode(in2, OUTPUT);
+  pinMode(buz, OUTPUT);
+
+  // Start serial communication with a baud rate of 9600
+  Serial.begin(9600);
+
+  // Keep the motor off initially
+  digitalWrite(in1, LOW);
+  digitalWrite(in2, LOW);
+}
+
+void loop() 
+{
+  // Read the new state value from the bolt pin
+  new_state = digitalRead(bolt);    
+
+  // Check for change in state
+  if (new_state != old_state)       
+  {
+    if (new_state == 0)             // If new state is 0, close the garage door
+    {
+      digitalWrite(buz, LOW);        // Turn off the buzzer
+      Serial.println("Closing Garage");   
+
+      analogWrite(enable, 255);      // Rotate the motor to close the garage door
+      digitalWrite(in1, HIGH);
+      digitalWrite(in2, LOW);
+      delay(4000);                   // Wait for 4 seconds
+
+      digitalWrite(in1, LOW);
+      digitalWrite(in2, LOW);
+      Serial.println("Garage Closed");
+    }
+    else if (new_state == 1)        // If new state is 1, open the garage door
+    {
+      Serial.println("Opening Garage");
+
+      analogWrite(enable, 255);      // Rotate the motor in the opposite direction to open the garage door
+      digitalWrite(in1, LOW);
+      digitalWrite(in2, HIGH);
+      delay(4000);                   // Wait for 4 seconds
+
+      digitalWrite(in1, LOW);
+      digitalWrite(in2, LOW);
+      Serial.println("Garage Opened");
+    }
+  }
+
+  // Update the old state value
+  old_state = new_state;      
+
+  // If the garage door is open, check the distance using the ultrasonic sensor
+  if (new_state == 1)         
+  {
+    distance = ultrasonic.read();
+    Serial.print("Distance in CM: ");
+    Serial.println(distance);
+
+    if (distance < 30)   
+    {
+      Serial.println("STOP!");   
+      digitalWrite(buz, HIGH);    // Turn on the buzzer if the distance is less than 30 cm
+    }
+    else
+    {
+      digitalWrite(buz, LOW);     // Turn off the buzzer if the distance is more than 30 cm
+    }
+  }
+
+  delay(5000);    // Repeat every 5 seconds
+}
