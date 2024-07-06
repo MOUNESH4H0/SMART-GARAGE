@@ -1,3 +1,4 @@
+# SMART-GARAGE
 
 Objectives
 Automated Garage Door Control:
@@ -114,4 +115,4 @@ Additional Sensors:
 Add more sensors for enhanced functionality, such as temperature or humidity sensors.
 Advanced Alert System:
 
-Implement advanced alert mechanisms, such as SMS or email notifications.# SMART-GARAGE
+Implement advanced alert mechanisms, such as SMS or email notifications.
